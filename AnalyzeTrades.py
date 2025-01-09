@@ -38,8 +38,8 @@ def calculate_statistics(df):
     streak_id = (loss_days != loss_days.shift()).cumsum()
     loss_streaks = loss_days.groupby(streak_id).agg(['sum', 'min'])
 
-    # Filter only the loss streaks with length >=2
-    valid_streaks = loss_streaks[(loss_streaks['min'] == True) & (loss_streaks['sum'] >= 2)]
+    # Filter only the loss streaks with length >=1
+    valid_streaks = loss_streaks[(loss_streaks['min'] == True) & (loss_streaks['sum'] >= 1)]
 
     # Get start dates of valid loss streaks
     streak_start_dates = loss_days.groupby(streak_id).apply(lambda x: x.index[0])
@@ -102,15 +102,16 @@ if uploaded_files:
         .agg({'Start Date': list})
     )
 
-    # 2) Count how many streaks per length
+    # Count how many streaks per length
     grouped_streaks['Count'] = grouped_streaks['Start Date'].apply(len)
 
-    # 3) Join all start dates into a single string for hover text
+    # Truncate hover text to a maximum number of dates
+    max_dates_in_tooltip = 10
     grouped_streaks['All Start Dates'] = grouped_streaks['Start Date'].apply(
-        lambda dates: '<br>'.join(str(d) for d in dates)
+        lambda dates: '<br>'.join(str(d) for d in dates[:max_dates_in_tooltip]) + ('<br>...' if len(dates) > max_dates_in_tooltip else '')
     )
 
-    # 4) Now create a bar chart that acts like a histogram
+    # Create a bar chart that acts like a histogram
     fig = px.bar(
         grouped_streaks,
         x='Consecutive Loss Days',
