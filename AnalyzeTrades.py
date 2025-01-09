@@ -8,6 +8,10 @@ def load_and_merge_files(uploaded_files):
     dataframes = []
     for file in uploaded_files:
         df = pd.read_excel(file)
+        
+        # Convert 'Profit' column to numeric, handling parentheses for negative values
+        df['Profit'] = df['Profit'].replace('[\$,)]', '', regex=True).replace('[(]', '-', regex=True).astype(float)
+        
         dataframes.append(df)
     merged_df = pd.concat(dataframes, ignore_index=True)
     merged_df['Entry time'] = pd.to_datetime(merged_df['Entry time'])
